@@ -34,7 +34,8 @@ public class Event {
 		
 	}
 
-	public Event(Long id, String name, String local, Date date, String description, User user, EventStatus eventStatus) {
+	public Event(Long id, String name, String local, Date date,
+			String description, User user, EventStatus eventStatus) {
 		super();
 		this.eventId = id;
 		this.name = name;
@@ -108,12 +109,15 @@ public class Event {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		Event other = (Event) obj;
 		return Objects.equals(eventId, other.eventId);
 	}

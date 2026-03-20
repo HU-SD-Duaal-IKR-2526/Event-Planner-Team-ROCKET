@@ -118,7 +118,8 @@ public class EventService {
 				!eventDTO.getEventStatus().equals(EventStatus.CANCELLED.toString()) &&
 				!eventDTO.getEventStatus().equals(EventStatus.COMPLETED.toString())
 				) {
-			throw new InvalidEnumValueException("Please use only \"PLANNED\", \"CANCELLED\" or \"COMPLETED\"");
+			throw new InvalidEnumValueException(
+				"Please use only \"PLANNED\", \"CANCELLED\" or \"COMPLETED\"");
 		}
 		eventConverted.setEventStatus(EventStatus.valueOf(eventDTO.getEventStatus()));
 		return eventConverted;
