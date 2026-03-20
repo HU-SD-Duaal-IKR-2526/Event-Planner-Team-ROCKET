@@ -9,26 +9,42 @@ on:
       - main
 
 jobs:
+
   # ──────────────────────────────────────────────
-  # Job 1: Build, Checkstyle, Tests & Coverage
+  # Job 1: Checkstyle (linting)
   # ──────────────────────────────────────────────
-  build-and-test:
-    name: Build, Lint & Test
+  lint:
+    name: Checkstyle
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build, Checkstyle, Tests & Coverage (mvn verify)
-        run: mvn verify --batch-mode --no-transfer-progress
+      - name: Run Checkstyle
+        run: mvn checkstyle:check --batch-mode --no-transfer-progress
+
+  # ──────────────────────────────────────────────
+  # Job 2: Tests + Coverage (JaCoCo)
+  # ──────────────────────────────────────────────
+  test-and-coverage:
+    name: Tests & Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run tests and check coverage
+        run: mvn verify --batch-mode --no-transfer-progress -Dcheckstyle.skip=true
 
       - name: Upload coverage report
         if: always()
@@ -47,22 +63,17 @@ jobs:
           retention-days: 7
 
   # ──────────────────────────────────────────────
-  # Job 2: OWASP Dependency Vulnerability Check
-  # (apart zodat een trage NVD-download de tests
-  #  niet vertraagt)
+  # Job 3: OWASP Dependency Check
+  # Alleen op PRs naar main — niet bij elke push
   # ──────────────────────────────────────────────
   dependency-check:
     name: OWASP Dependency Check
     runs-on: ubuntu-latest
-    # Alleen op PRs naar main — niet bij elke push
     if: github.event_name == 'pull_request'
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
