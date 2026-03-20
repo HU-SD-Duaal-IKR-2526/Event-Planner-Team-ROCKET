@@ -34,7 +34,7 @@ public class EventApplicationService {
     }
 
     public List<EventResult> findAll() {
-        return eventRepository.findAll().stream()
+        return eventRepository.findByStatus(EventStatus.PLANNED).stream()
                 .map(this::toResult)
                 .toList();
     }

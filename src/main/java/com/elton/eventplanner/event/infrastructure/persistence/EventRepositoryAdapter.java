@@ -1,6 +1,7 @@
 package com.elton.eventplanner.event.infrastructure.persistence;
 
 import com.elton.eventplanner.event.domain.model.Event;
+import com.elton.eventplanner.event.domain.model.EventStatus;
 import com.elton.eventplanner.event.domain.repository.EventRepository;
 import com.elton.eventplanner.event.domain.valueobject.EventId;
 
@@ -23,6 +24,13 @@ public class EventRepositoryAdapter implements EventRepository {
     @Override
     public List<Event> findAll() {
         return jpaRepository.findAll().stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Event> findByStatus(EventStatus status) {
+        return jpaRepository.findByStatus(status).stream()
                 .map(mapper::toDomain)
                 .toList();
     }
