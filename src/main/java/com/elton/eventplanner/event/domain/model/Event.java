@@ -1,11 +1,17 @@
 package com.elton.eventplanner.event.domain.model;
 
+import com.elton.eventplanner.event.domain.events.DomainEvent;
+import com.elton.eventplanner.event.domain.events.EventCancelledDomainEvent;
+import com.elton.eventplanner.event.domain.events.EventStatusChangedDomainEvent;
 import com.elton.eventplanner.event.domain.valueobject.EventDate;
 import com.elton.eventplanner.event.domain.valueobject.EventDescription;
 import com.elton.eventplanner.event.domain.valueobject.EventId;
 import com.elton.eventplanner.event.domain.valueobject.EventName;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 public class Event {
@@ -17,6 +23,8 @@ public class Event {
     private EventDescription description;
     private EventStatus status;
     private Long userId;
+
+    private final List<DomainEvent> domainEvents = new ArrayList<>();
 
     // Herstel vanuit persistence
     public Event(EventId id, EventName name, EventDate date, String location,
@@ -43,14 +51,23 @@ public class Event {
             throw new IllegalStateException("Event is already cancelled");
         }
         this.status = EventStatus.CANCELLED;
+        domainEvents.add(new EventCancelledDomainEvent(id != null ? id.getValue() : null));
     }
 
     public void updateStatus(LocalDate today) {
         if (this.status == EventStatus.CANCELLED) return;
+        EventStatus previousStatus = this.status;
         if (this.date.isBefore(today)) {
             this.status = EventStatus.COMPLETED;
         } else if (this.date.isAfter(today)) {
             this.status = EventStatus.PLANNED;
+        }
+        if (this.status != previousStatus) {
+            domainEvents.add(new EventStatusChangedDomainEvent(
+                    id != null ? id.getValue() : null,
+                    previousStatus.name(),
+                    this.status.name()
+            ));
         }
     }
 
@@ -62,6 +79,14 @@ public class Event {
         this.description = description;
         this.status = status;
         this.userId = userId;
+    }
+
+    // --- Domain events ---
+
+    public List<DomainEvent> pullDomainEvents() {
+        List<DomainEvent> events = Collections.unmodifiableList(new ArrayList<>(domainEvents));
+        domainEvents.clear();
+        return events;
     }
 
     // --- Getters ---

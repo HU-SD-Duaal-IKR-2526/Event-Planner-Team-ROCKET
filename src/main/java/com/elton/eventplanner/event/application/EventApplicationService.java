@@ -4,6 +4,7 @@ import com.elton.eventplanner.entities.enums.UserRole;
 import com.elton.eventplanner.event.application.dto.CreateEventCommand;
 import com.elton.eventplanner.event.application.dto.EventResult;
 import com.elton.eventplanner.event.application.dto.UpdateEventCommand;
+import com.elton.eventplanner.event.domain.events.EventCreatedDomainEvent;
 import com.elton.eventplanner.event.domain.exception.EventNotFoundException;
 import com.elton.eventplanner.event.domain.model.Event;
 import com.elton.eventplanner.event.domain.model.EventStatus;
@@ -17,6 +18,7 @@ import com.elton.eventplanner.services.exceptions.EntityNotFoundException;
 import com.elton.eventplanner.services.exceptions.InvalidEnumValueException;
 import com.elton.eventplanner.services.exceptions.RoleNotAllowedException;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -27,10 +29,13 @@ public class EventApplicationService {
 
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public EventApplicationService(EventRepository eventRepository, UserRepository userRepository) {
+    public EventApplicationService(EventRepository eventRepository, UserRepository userRepository,
+                                   ApplicationEventPublisher eventPublisher) {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public List<EventResult> findAll() {
@@ -54,7 +59,9 @@ public class EventApplicationService {
                 new EventDescription(cmd.description()),
                 cmd.userId()
         );
-        return toResult(eventRepository.save(event));
+        Event saved = eventRepository.save(event);
+        eventPublisher.publishEvent(new EventCreatedDomainEvent(saved.getId().getValue(), saved.getName().getValue()));
+        return toResult(saved);
     }
 
     public EventResult update(UpdateEventCommand cmd) {
@@ -84,14 +91,22 @@ public class EventApplicationService {
         Event event = eventRepository.findById(new EventId(id))
                 .orElseThrow(() -> new EventNotFoundException(id));
         event.cancel();
-        return toResult(eventRepository.save(event));
+        Event saved = eventRepository.save(event);
+        publishDomainEvents(saved);
+        return toResult(saved);
     }
 
     public EventResult autoStatusUpdate(Long id) {
         Event event = eventRepository.findById(new EventId(id))
                 .orElseThrow(() -> new EventNotFoundException(id));
         event.updateStatus(LocalDate.now());
-        return toResult(eventRepository.save(event));
+        Event saved = eventRepository.save(event);
+        publishDomainEvents(saved);
+        return toResult(saved);
+    }
+
+    private void publishDomainEvents(Event event) {
+        event.pullDomainEvents().forEach(eventPublisher::publishEvent);
     }
 
     private void validateUserCanManageEvent(Long userId) {
