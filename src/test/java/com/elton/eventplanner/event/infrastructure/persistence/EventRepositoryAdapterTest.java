@@ -1,12 +1,20 @@
 package com.elton.eventplanner.event.infrastructure.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.elton.eventplanner.event.domain.model.Event;
 import com.elton.eventplanner.event.domain.model.EventStatus;
 import com.elton.eventplanner.event.domain.valueobject.EventDate;
 import com.elton.eventplanner.event.domain.valueobject.EventDescription;
 import com.elton.eventplanner.event.domain.valueobject.EventId;
 import com.elton.eventplanner.event.domain.valueobject.EventName;
-
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,46 +22,36 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class EventRepositoryAdapterTest {
 
-    @Mock
-    private EventJpaRepository jpaRepository;
-    @Mock
-    private EventMapper mapper;
-    @InjectMocks
-    private EventRepositoryAdapter adapter;
+    @Mock private EventJpaRepository jpaRepository;
+    @Mock private EventMapper mapper;
+    @InjectMocks private EventRepositoryAdapter adapter;
 
     private EventJpaEntity sampleEntity;
     private Event sampleDomain;
 
     @BeforeEach
     void setUp() {
-        sampleEntity = new EventJpaEntity(
-                1L, "Team Rocket Kickoff", LocalDate.of(2026, 6, 15),
-                "Amsterdam", "Een kickoff meeting voor Team Rocket.",
-                EventStatus.PLANNED, 1L
-        );
-        sampleDomain = new Event(
-                new EventId(1L),
-                new EventName("Team Rocket Kickoff"),
-                new EventDate(LocalDate.of(2026, 6, 15)),
-                "Amsterdam",
-                new EventDescription("Een kickoff meeting voor Team Rocket."),
-                EventStatus.PLANNED,
-                1L
-        );
+        sampleEntity =
+                new EventJpaEntity(
+                        1L,
+                        "Team Rocket Kickoff",
+                        LocalDate.of(2026, 6, 15),
+                        "Amsterdam",
+                        "Een kickoff meeting voor Team Rocket.",
+                        EventStatus.PLANNED,
+                        1L);
+        sampleDomain =
+                new Event(
+                        new EventId(1L),
+                        new EventName("Team Rocket Kickoff"),
+                        new EventDate(LocalDate.of(2026, 6, 15)),
+                        "Amsterdam",
+                        new EventDescription("Een kickoff meeting voor Team Rocket."),
+                        EventStatus.PLANNED,
+                        1L);
     }
 
     @Test

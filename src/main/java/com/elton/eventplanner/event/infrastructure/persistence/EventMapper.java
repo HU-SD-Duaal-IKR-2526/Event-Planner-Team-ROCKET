@@ -5,7 +5,6 @@ import com.elton.eventplanner.event.domain.valueobject.EventDate;
 import com.elton.eventplanner.event.domain.valueobject.EventDescription;
 import com.elton.eventplanner.event.domain.valueobject.EventId;
 import com.elton.eventplanner.event.domain.valueobject.EventName;
-
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,8 +18,7 @@ public class EventMapper {
                 entity.getLocation(),
                 new EventDescription(entity.getDescription()),
                 entity.getStatus(),
-                entity.getUserId()
-        );
+                entity.getUserId());
     }
 
     public EventJpaEntity toJpaEntity(Event event) {
@@ -32,7 +30,6 @@ public class EventMapper {
                 event.getLocation(),
                 event.getDescription().getValue(),
                 event.getStatus(),
-                event.getUserId()
-        );
+                event.getUserId());
     }
 }

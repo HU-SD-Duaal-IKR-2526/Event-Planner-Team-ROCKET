@@ -1,27 +1,23 @@
 package com.elton.eventplanner.event.domain.model;
 
-import com.elton.eventplanner.event.domain.valueobject.EventDate;
-import com.elton.eventplanner.event.domain.valueobject.EventDescription;
-import com.elton.eventplanner.event.domain.valueobject.EventId;
-import com.elton.eventplanner.event.domain.valueobject.EventName;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
-
-import com.elton.eventplanner.event.domain.events.DomainEvent;
-import com.elton.eventplanner.event.domain.events.EventCancelledDomainEvent;
-import com.elton.eventplanner.event.domain.events.EventStatusChangedDomainEvent;
-import com.elton.eventplanner.event.domain.exception.EventAlreadyCancelledException;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.elton.eventplanner.event.domain.events.DomainEvent;
+import com.elton.eventplanner.event.domain.events.EventCancelledDomainEvent;
+import com.elton.eventplanner.event.domain.events.EventStatusChangedDomainEvent;
+import com.elton.eventplanner.event.domain.exception.EventAlreadyCancelledException;
+import com.elton.eventplanner.event.domain.valueobject.EventDate;
+import com.elton.eventplanner.event.domain.valueobject.EventDescription;
+import com.elton.eventplanner.event.domain.valueobject.EventId;
+import com.elton.eventplanner.event.domain.valueobject.EventName;
+import java.time.LocalDate;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class EventTest {
 
@@ -29,13 +25,13 @@ class EventTest {
 
     @BeforeEach
     void setUp() {
-        event = Event.create(
-                new EventName("Team Rocket Kickoff"),
-                new EventDate(LocalDate.now().plusDays(10)),
-                "Amsterdam",
-                new EventDescription("Een kickoff meeting voor Team Rocket."),
-                1L
-        );
+        event =
+                Event.create(
+                        new EventName("Team Rocket Kickoff"),
+                        new EventDate(LocalDate.now().plusDays(10)),
+                        "Amsterdam",
+                        new EventDescription("Een kickoff meeting voor Team Rocket."),
+                        1L);
     }
 
     // --- create() ---
@@ -75,13 +71,13 @@ class EventTest {
 
     @Test
     void updateStatus_pastDate_setsCompleted() {
-        Event pastEvent = Event.create(
-                new EventName("Oud event"),
-                new EventDate(LocalDate.now().minusDays(1)),
-                "Rotterdam",
-                new EventDescription("Dit event is al voorbij."),
-                1L
-        );
+        Event pastEvent =
+                Event.create(
+                        new EventName("Oud event"),
+                        new EventDate(LocalDate.now().minusDays(1)),
+                        "Rotterdam",
+                        new EventDescription("Dit event is al voorbij."),
+                        1L);
         pastEvent.updateStatus(LocalDate.now());
         assertEquals(EventStatus.COMPLETED, pastEvent.getStatus());
     }
@@ -118,12 +114,24 @@ class EventTest {
 
     @Test
     void equals_sameId_areEqual() {
-        Event e1 = new Event(new EventId(1L), new EventName("Event A"),
-                new EventDate(LocalDate.now().plusDays(1)), "Den Haag",
-                new EventDescription("Beschrijving van event A."), EventStatus.PLANNED, 1L);
-        Event e2 = new Event(new EventId(1L), new EventName("Event B"),
-                new EventDate(LocalDate.now().plusDays(2)), "Leiden",
-                new EventDescription("Beschrijving van event B."), EventStatus.CANCELLED, 2L);
+        Event e1 =
+                new Event(
+                        new EventId(1L),
+                        new EventName("Event A"),
+                        new EventDate(LocalDate.now().plusDays(1)),
+                        "Den Haag",
+                        new EventDescription("Beschrijving van event A."),
+                        EventStatus.PLANNED,
+                        1L);
+        Event e2 =
+                new Event(
+                        new EventId(1L),
+                        new EventName("Event B"),
+                        new EventDate(LocalDate.now().plusDays(2)),
+                        "Leiden",
+                        new EventDescription("Beschrijving van event B."),
+                        EventStatus.CANCELLED,
+                        2L);
 
         assertEquals(e1, e2);
     }
@@ -152,9 +160,15 @@ class EventTest {
 
     @Test
     void updateStatus_statusChanges_addsStatusChangedDomainEvent() {
-        Event pastEvent = new Event(new EventId(1L), new EventName("Oud event"),
-                new EventDate(LocalDate.now().minusDays(1)), "Rotterdam",
-                new EventDescription("Dit event is al voorbij."), EventStatus.PLANNED, 1L);
+        Event pastEvent =
+                new Event(
+                        new EventId(1L),
+                        new EventName("Oud event"),
+                        new EventDate(LocalDate.now().minusDays(1)),
+                        "Rotterdam",
+                        new EventDescription("Dit event is al voorbij."),
+                        EventStatus.PLANNED,
+                        1L);
 
         pastEvent.updateStatus(LocalDate.now());
 
@@ -179,24 +193,48 @@ class EventTest {
 
     @Test
     void hashCode_sameId_equalHashCodes() {
-        Event e1 = new Event(new EventId(1L), new EventName("Event A"),
-                new EventDate(LocalDate.now().plusDays(1)), "Den Haag",
-                new EventDescription("Beschrijving van event A."), EventStatus.PLANNED, 1L);
-        Event e2 = new Event(new EventId(1L), new EventName("Event B"),
-                new EventDate(LocalDate.now().plusDays(2)), "Leiden",
-                new EventDescription("Beschrijving van event B."), EventStatus.CANCELLED, 2L);
+        Event e1 =
+                new Event(
+                        new EventId(1L),
+                        new EventName("Event A"),
+                        new EventDate(LocalDate.now().plusDays(1)),
+                        "Den Haag",
+                        new EventDescription("Beschrijving van event A."),
+                        EventStatus.PLANNED,
+                        1L);
+        Event e2 =
+                new Event(
+                        new EventId(1L),
+                        new EventName("Event B"),
+                        new EventDate(LocalDate.now().plusDays(2)),
+                        "Leiden",
+                        new EventDescription("Beschrijving van event B."),
+                        EventStatus.CANCELLED,
+                        2L);
 
         assertEquals(e1.hashCode(), e2.hashCode());
     }
 
     @Test
     void equals_differentId_areNotEqual() {
-        Event e1 = new Event(new EventId(1L), new EventName("Event A"),
-                new EventDate(LocalDate.now().plusDays(1)), "Den Haag",
-                new EventDescription("Beschrijving van event A."), EventStatus.PLANNED, 1L);
-        Event e2 = new Event(new EventId(2L), new EventName("Event A"),
-                new EventDate(LocalDate.now().plusDays(1)), "Den Haag",
-                new EventDescription("Beschrijving van event A."), EventStatus.PLANNED, 1L);
+        Event e1 =
+                new Event(
+                        new EventId(1L),
+                        new EventName("Event A"),
+                        new EventDate(LocalDate.now().plusDays(1)),
+                        "Den Haag",
+                        new EventDescription("Beschrijving van event A."),
+                        EventStatus.PLANNED,
+                        1L);
+        Event e2 =
+                new Event(
+                        new EventId(2L),
+                        new EventName("Event A"),
+                        new EventDate(LocalDate.now().plusDays(1)),
+                        "Den Haag",
+                        new EventDescription("Beschrijving van event A."),
+                        EventStatus.PLANNED,
+                        1L);
 
         assertNotEquals(e1, e2);
     }

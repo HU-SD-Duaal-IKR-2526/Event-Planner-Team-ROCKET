@@ -1,14 +1,13 @@
 package com.elton.eventplanner.event.domain.model;
 
 import com.elton.eventplanner.event.domain.events.DomainEvent;
-import com.elton.eventplanner.event.domain.exception.EventAlreadyCancelledException;
 import com.elton.eventplanner.event.domain.events.EventCancelledDomainEvent;
 import com.elton.eventplanner.event.domain.events.EventStatusChangedDomainEvent;
+import com.elton.eventplanner.event.domain.exception.EventAlreadyCancelledException;
 import com.elton.eventplanner.event.domain.valueobject.EventDate;
 import com.elton.eventplanner.event.domain.valueobject.EventDescription;
 import com.elton.eventplanner.event.domain.valueobject.EventId;
 import com.elton.eventplanner.event.domain.valueobject.EventName;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,8 +27,14 @@ public class Event {
     private final List<DomainEvent> domainEvents = new ArrayList<>();
 
     // Herstel vanuit persistence
-    public Event(EventId id, EventName name, EventDate date, String location,
-                 EventDescription description, EventStatus status, Long userId) {
+    public Event(
+            EventId id,
+            EventName name,
+            EventDate date,
+            String location,
+            EventDescription description,
+            EventStatus status,
+            Long userId) {
         this.id = id;
         this.name = name;
         this.date = date;
@@ -40,8 +45,12 @@ public class Event {
     }
 
     // Fabrieksmethode voor nieuw event — altijd PLANNED
-    public static Event create(EventName name, EventDate date, String location,
-                               EventDescription description, Long userId) {
+    public static Event create(
+            EventName name,
+            EventDate date,
+            String location,
+            EventDescription description,
+            Long userId) {
         return new Event(null, name, date, location, description, EventStatus.PLANNED, userId);
     }
 
@@ -66,16 +75,21 @@ public class Event {
             this.status = EventStatus.PLANNED;
         }
         if (this.status != previousStatus) {
-            domainEvents.add(new EventStatusChangedDomainEvent(
-                    id != null ? id.getValue() : null,
-                    previousStatus.name(),
-                    this.status.name()
-            ));
+            domainEvents.add(
+                    new EventStatusChangedDomainEvent(
+                            id != null ? id.getValue() : null,
+                            previousStatus.name(),
+                            this.status.name()));
         }
     }
 
-    public void update(EventName name, EventDate date, String location,
-                       EventDescription description, EventStatus status, Long userId) {
+    public void update(
+            EventName name,
+            EventDate date,
+            String location,
+            EventDescription description,
+            EventStatus status,
+            Long userId) {
         this.name = name;
         this.date = date;
         this.location = location;

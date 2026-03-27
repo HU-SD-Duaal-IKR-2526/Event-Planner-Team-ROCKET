@@ -1,7 +1,6 @@
 package com.elton.eventplanner.event.infrastructure.persistence;
 
 import com.elton.eventplanner.event.domain.model.EventStatus;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,7 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
 import java.time.LocalDate;
 
 @Entity
@@ -34,8 +32,14 @@ public class EventJpaEntity {
 
     public EventJpaEntity() {}
 
-    public EventJpaEntity(Long id, String name, LocalDate date, String location,
-                          String description, EventStatus status, Long userId) {
+    public EventJpaEntity(
+            Long id,
+            String name,
+            LocalDate date,
+            String location,
+            String description,
+            EventStatus status,
+            Long userId) {
         this.id = id;
         this.name = name;
         this.date = date;

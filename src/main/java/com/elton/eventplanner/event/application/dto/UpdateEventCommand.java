@@ -9,5 +9,4 @@ public record UpdateEventCommand(
         String location,
         String description,
         String status,
-        Long userId
-) {}
+        Long userId) {}

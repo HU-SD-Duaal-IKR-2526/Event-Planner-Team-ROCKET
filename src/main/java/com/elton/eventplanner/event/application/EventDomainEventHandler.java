@@ -3,7 +3,6 @@ package com.elton.eventplanner.event.application;
 import com.elton.eventplanner.event.domain.events.EventCancelledDomainEvent;
 import com.elton.eventplanner.event.domain.events.EventCreatedDomainEvent;
 import com.elton.eventplanner.event.domain.events.EventStatusChangedDomainEvent;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -26,6 +25,10 @@ public class EventDomainEventHandler {
 
     @EventListener
     public void on(EventStatusChangedDomainEvent event) {
-        LOG.info("Event status changed: id={}, {} -> {}", event.eventId(), event.oldStatus(), event.newStatus());
+        LOG.info(
+                "Event status changed: id={}, {} -> {}",
+                event.eventId(),
+                event.oldStatus(),
+                event.newStatus());
     }
 }

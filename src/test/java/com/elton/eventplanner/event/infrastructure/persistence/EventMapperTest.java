@@ -1,19 +1,17 @@
 package com.elton.eventplanner.event.infrastructure.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import com.elton.eventplanner.event.domain.model.Event;
 import com.elton.eventplanner.event.domain.model.EventStatus;
 import com.elton.eventplanner.event.domain.valueobject.EventDate;
 import com.elton.eventplanner.event.domain.valueobject.EventDescription;
 import com.elton.eventplanner.event.domain.valueobject.EventId;
 import com.elton.eventplanner.event.domain.valueobject.EventName;
-
+import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 class EventMapperTest {
 
@@ -27,11 +25,15 @@ class EventMapperTest {
 
     @Test
     void toDomain_mapsAllFields() {
-        EventJpaEntity entity = new EventJpaEntity(
-                1L, "Team Rocket Kickoff", eventDate,
-                "Amsterdam", "Een kickoff meeting voor Team Rocket.",
-                EventStatus.PLANNED, 2L
-        );
+        EventJpaEntity entity =
+                new EventJpaEntity(
+                        1L,
+                        "Team Rocket Kickoff",
+                        eventDate,
+                        "Amsterdam",
+                        "Een kickoff meeting voor Team Rocket.",
+                        EventStatus.PLANNED,
+                        2L);
 
         Event domain = mapper.toDomain(entity);
 
@@ -46,15 +48,15 @@ class EventMapperTest {
 
     @Test
     void toJpaEntity_withId_mapsAllFields() {
-        Event event = new Event(
-                new EventId(1L),
-                new EventName("Team Rocket Kickoff"),
-                new EventDate(eventDate),
-                "Amsterdam",
-                new EventDescription("Een kickoff meeting voor Team Rocket."),
-                EventStatus.PLANNED,
-                2L
-        );
+        Event event =
+                new Event(
+                        new EventId(1L),
+                        new EventName("Team Rocket Kickoff"),
+                        new EventDate(eventDate),
+                        "Amsterdam",
+                        new EventDescription("Een kickoff meeting voor Team Rocket."),
+                        EventStatus.PLANNED,
+                        2L);
 
         EventJpaEntity entity = mapper.toJpaEntity(event);
 
@@ -69,13 +71,13 @@ class EventMapperTest {
 
     @Test
     void toJpaEntity_withoutId_setsNullId() {
-        Event event = Event.create(
-                new EventName("Nieuw Event"),
-                new EventDate(eventDate),
-                "Rotterdam",
-                new EventDescription("Een nieuw event zonder id nog."),
-                1L
-        );
+        Event event =
+                Event.create(
+                        new EventName("Nieuw Event"),
+                        new EventDate(eventDate),
+                        "Rotterdam",
+                        new EventDescription("Een nieuw event zonder id nog."),
+                        1L);
 
         EventJpaEntity entity = mapper.toJpaEntity(event);
 
@@ -85,11 +87,15 @@ class EventMapperTest {
 
     @Test
     void toDomain_cancelledStatus_mapsCorrectly() {
-        EventJpaEntity entity = new EventJpaEntity(
-                3L, "Afgelast Event", eventDate,
-                "Den Haag", "Dit event is helaas afgelast.",
-                EventStatus.CANCELLED, 1L
-        );
+        EventJpaEntity entity =
+                new EventJpaEntity(
+                        3L,
+                        "Afgelast Event",
+                        eventDate,
+                        "Den Haag",
+                        "Dit event is helaas afgelast.",
+                        EventStatus.CANCELLED,
+                        1L);
 
         Event domain = mapper.toDomain(entity);
 
@@ -98,15 +104,15 @@ class EventMapperTest {
 
     @Test
     void toJpaEntity_completedStatus_mapsCorrectly() {
-        Event event = new Event(
-                new EventId(4L),
-                new EventName("Afgelopen Event"),
-                new EventDate(eventDate),
-                "Utrecht",
-                new EventDescription("Dit event is al afgelopen."),
-                EventStatus.COMPLETED,
-                1L
-        );
+        Event event =
+                new Event(
+                        new EventId(4L),
+                        new EventName("Afgelopen Event"),
+                        new EventDate(eventDate),
+                        "Utrecht",
+                        new EventDescription("Dit event is al afgelopen."),
+                        EventStatus.COMPLETED,
+                        1L);
 
         EventJpaEntity entity = mapper.toJpaEntity(event);
 

@@ -1,13 +1,12 @@
 package com.elton.eventplanner.event.application;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 import com.elton.eventplanner.event.domain.events.EventCancelledDomainEvent;
 import com.elton.eventplanner.event.domain.events.EventCreatedDomainEvent;
 import com.elton.eventplanner.event.domain.events.EventStatusChangedDomainEvent;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class EventDomainEventHandlerTest {
 
@@ -20,7 +19,8 @@ class EventDomainEventHandlerTest {
 
     @Test
     void on_eventCreated_doesNotThrow() {
-        assertDoesNotThrow(() -> handler.on(new EventCreatedDomainEvent(1L, "Team Rocket Kickoff")));
+        assertDoesNotThrow(
+                () -> handler.on(new EventCreatedDomainEvent(1L, "Team Rocket Kickoff")));
     }
 
     @Test
@@ -30,6 +30,7 @@ class EventDomainEventHandlerTest {
 
     @Test
     void on_eventStatusChanged_doesNotThrow() {
-        assertDoesNotThrow(() -> handler.on(new EventStatusChangedDomainEvent(1L, "PLANNED", "COMPLETED")));
+        assertDoesNotThrow(
+                () -> handler.on(new EventStatusChangedDomainEvent(1L, "PLANNED", "COMPLETED")));
     }
 }

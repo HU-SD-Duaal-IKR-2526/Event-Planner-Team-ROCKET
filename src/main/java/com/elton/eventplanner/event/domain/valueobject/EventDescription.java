@@ -9,7 +9,8 @@ public final class EventDescription {
     public EventDescription(String value) {
         Objects.requireNonNull(value, "Event description cannot be null");
         if (value.length() < 10 || value.length() > 500) {
-            throw new IllegalArgumentException("Event description must be between 10 and 500 characters");
+            throw new IllegalArgumentException(
+                    "Event description must be between 10 and 500 characters");
         }
         this.value = value;
     }

@@ -17,12 +17,10 @@ import com.elton.eventplanner.repositories.UserRepository;
 import com.elton.eventplanner.services.exceptions.EntityNotFoundException;
 import com.elton.eventplanner.services.exceptions.InvalidEnumValueException;
 import com.elton.eventplanner.services.exceptions.RoleNotAllowedException;
-
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
 @Service
 public class EventApplicationService {
@@ -31,8 +29,10 @@ public class EventApplicationService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public EventApplicationService(EventRepository eventRepository, UserRepository userRepository,
-                                   ApplicationEventPublisher eventPublisher) {
+    public EventApplicationService(
+            EventRepository eventRepository,
+            UserRepository userRepository,
+            ApplicationEventPublisher eventPublisher) {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
@@ -45,30 +45,36 @@ public class EventApplicationService {
     }
 
     public EventResult findById(Long id) {
-        return eventRepository.findById(new EventId(id))
+        return eventRepository
+                .findById(new EventId(id))
                 .map(this::toResult)
                 .orElseThrow(() -> new EventNotFoundException(id));
     }
 
     public EventResult create(CreateEventCommand cmd) {
         validateUserCanManageEvent(cmd.userId());
-        Event event = Event.create(
-                new EventName(cmd.name()),
-                new EventDate(cmd.date()),
-                cmd.location(),
-                new EventDescription(cmd.description()),
-                cmd.userId()
-        );
+        Event event =
+                Event.create(
+                        new EventName(cmd.name()),
+                        new EventDate(cmd.date()),
+                        cmd.location(),
+                        new EventDescription(cmd.description()),
+                        cmd.userId());
         Event saved = eventRepository.save(event);
-        eventPublisher.publishEvent(new EventCreatedDomainEvent(saved.getId().getValue(), saved.getName().getValue()));
+        eventPublisher.publishEvent(
+                new EventCreatedDomainEvent(saved.getId().getValue(), saved.getName().getValue()));
         return toResult(saved);
     }
 
     public EventResult update(UpdateEventCommand cmd) {
-        Event event = eventRepository.findById(new EventId(cmd.id()))
-                .orElseThrow(() -> new EventNotFoundException(cmd.id()));
-        var user = userRepository.findById(cmd.userId())
-                .orElseThrow(() -> new EntityNotFoundException(cmd.userId()));
+        Event event =
+                eventRepository
+                        .findById(new EventId(cmd.id()))
+                        .orElseThrow(() -> new EventNotFoundException(cmd.id()));
+        var user =
+                userRepository
+                        .findById(cmd.userId())
+                        .orElseThrow(() -> new EntityNotFoundException(cmd.userId()));
         if (user.getRole().equals(UserRole.USER)) {
             throw new RoleNotAllowedException(user.getRole(), "manage an event");
         }
@@ -81,8 +87,7 @@ public class EventApplicationService {
                 cmd.location(),
                 new EventDescription(cmd.description()),
                 parseStatus(cmd.status()),
-                cmd.userId()
-        );
+                cmd.userId());
         return toResult(eventRepository.save(event));
     }
 
@@ -95,8 +100,10 @@ public class EventApplicationService {
     }
 
     public EventResult cancel(Long id) {
-        Event event = eventRepository.findById(new EventId(id))
-                .orElseThrow(() -> new EventNotFoundException(id));
+        Event event =
+                eventRepository
+                        .findById(new EventId(id))
+                        .orElseThrow(() -> new EventNotFoundException(id));
         event.cancel();
         Event saved = eventRepository.save(event);
         publishDomainEvents(saved);
@@ -104,8 +111,10 @@ public class EventApplicationService {
     }
 
     public EventResult autoStatusUpdate(Long id) {
-        Event event = eventRepository.findById(new EventId(id))
-                .orElseThrow(() -> new EventNotFoundException(id));
+        Event event =
+                eventRepository
+                        .findById(new EventId(id))
+                        .orElseThrow(() -> new EventNotFoundException(id));
         event.updateStatus(LocalDate.now());
         Event saved = eventRepository.save(event);
         publishDomainEvents(saved);
@@ -117,8 +126,10 @@ public class EventApplicationService {
     }
 
     private void validateUserCanManageEvent(Long userId) {
-        var user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException(userId));
+        var user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new EntityNotFoundException(userId));
         if (user.getRole().equals(UserRole.USER)) {
             throw new RoleNotAllowedException(user.getRole(), "manage an event");
         }
@@ -128,7 +139,8 @@ public class EventApplicationService {
         try {
             return EventStatus.valueOf(status);
         } catch (IllegalArgumentException e) {
-            throw new InvalidEnumValueException("Please use only \"PLANNED\", \"CANCELLED\" or \"COMPLETED\"");
+            throw new InvalidEnumValueException(
+                    "Please use only \"PLANNED\", \"CANCELLED\" or \"COMPLETED\"");
         }
     }
 
@@ -140,7 +152,6 @@ public class EventApplicationService {
                 event.getLocation(),
                 event.getDescription().getValue(),
                 event.getStatus().name(),
-                event.getUserId()
-        );
+                event.getUserId());
     }
 }
