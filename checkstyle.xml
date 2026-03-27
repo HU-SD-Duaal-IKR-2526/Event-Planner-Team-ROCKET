@@ -7,21 +7,17 @@
     <property name="severity" value="error"/>
     <property name="fileExtensions" value="java"/>
 
-    <!-- Checker-niveau: bestandsbrede checks -->
     <module name="LineLength">
         <property name="max" value="120"/>
         <property name="ignorePattern" value="^package.*|^import.*|http://|https://"/>
     </module>
 
-    <!-- TreeWalker: checks op token/AST niveau -->
     <module name="TreeWalker">
 
-        <!-- Imports -->
         <module name="AvoidStarImport"/>
         <module name="UnusedImports"/>
         <module name="IllegalImport"/>
 
-        <!-- Naamgeving -->
         <module name="TypeName"/>
         <module name="ConstantName"/>
         <module name="LocalVariableName"/>
@@ -30,7 +26,6 @@
         <module name="PackageName"/>
         <module name="ParameterName"/>
 
-        <!-- Blokken en accolades -->
         <module name="NeedBraces"/>
         <module name="LeftCurly"/>
         <module name="RightCurly"/>
@@ -38,7 +33,6 @@
             <property name="option" value="text"/>
         </module>
 
-        <!-- Methode complexiteit -->
         <module name="MethodLength">
             <property name="max" value="80"/>
         </module>
@@ -46,7 +40,6 @@
             <property name="max" value="8"/>
         </module>
 
-        <!-- Code kwaliteit -->
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
         <module name="SimplifyBooleanExpression"/>

@@ -62,24 +62,20 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
-			<!-- JaCoCo: testdekking meten en afdwingen -->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.12</version>
 				<executions>
-					<!-- Instrumentatie voor meting -->
 					<execution>
 						<id>prepare-agent</id>
 						<goals><goal>prepare-agent</goal></goals>
 					</execution>
-					<!-- Rapport genereren na tests -->
 					<execution>
 						<id>report</id>
 						<phase>verify</phase>
 						<goals><goal>report</goal></goals>
 					</execution>
-					<!-- 70% minimum op de domeinlaag -->
 					<execution>
 						<id>check</id>
 						<phase>verify</phase>
@@ -89,7 +85,7 @@
 								<rule>
 									<element>PACKAGE</element>
 									<includes>
-										<include>com.elton.eventplanner.event.domain.*</include>
+										<include>com.elton.eventplanner.*</include>
 									</includes>
 									<limits>
 										<limit>
@@ -105,7 +101,6 @@
 				</executions>
 			</plugin>
 
-			<!-- Checkstyle: codestijl controleren -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
