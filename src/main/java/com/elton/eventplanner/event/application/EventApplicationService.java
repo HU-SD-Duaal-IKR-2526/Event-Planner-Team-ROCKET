@@ -67,7 +67,14 @@ public class EventApplicationService {
     public EventResult update(UpdateEventCommand cmd) {
         Event event = eventRepository.findById(new EventId(cmd.id()))
                 .orElseThrow(() -> new EventNotFoundException(cmd.id()));
-        validateUserCanManageEvent(cmd.userId());
+        var user = userRepository.findById(cmd.userId())
+                .orElseThrow(() -> new EntityNotFoundException(cmd.userId()));
+        if (user.getRole().equals(UserRole.USER)) {
+            throw new RoleNotAllowedException(user.getRole(), "manage an event");
+        }
+        if (user.getRole().equals(UserRole.OWNER) && !cmd.userId().equals(event.getUserId())) {
+            throw new RoleNotAllowedException(user.getRole(), "edit events owned by others");
+        }
         event.update(
                 new EventName(cmd.name()),
                 new EventDate(cmd.date()),

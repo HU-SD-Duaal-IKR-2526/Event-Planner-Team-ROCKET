@@ -10,10 +10,18 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 
+import com.elton.eventplanner.event.domain.events.DomainEvent;
+import com.elton.eventplanner.event.domain.events.EventCancelledDomainEvent;
+import com.elton.eventplanner.event.domain.events.EventStatusChangedDomainEvent;
+import com.elton.eventplanner.event.domain.exception.EventAlreadyCancelledException;
+
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EventTest {
 
@@ -58,9 +66,9 @@ class EventTest {
     }
 
     @Test
-    void cancel_alreadyCancelled_throwsIllegalStateException() {
+    void cancel_alreadyCancelled_throwsEventAlreadyCancelledException() {
         event.cancel();
-        assertThrows(IllegalStateException.class, () -> event.cancel());
+        assertThrows(EventAlreadyCancelledException.class, () -> event.cancel());
     }
 
     // --- updateStatus() ---
@@ -118,6 +126,67 @@ class EventTest {
                 new EventDescription("Beschrijving van event B."), EventStatus.CANCELLED, 2L);
 
         assertEquals(e1, e2);
+    }
+
+    // --- domain events ---
+
+    @Test
+    void cancel_addsCancelledDomainEvent() {
+        event.cancel();
+
+        List<DomainEvent> events = event.pullDomainEvents();
+
+        assertEquals(1, events.size());
+        assertTrue(events.get(0) instanceof EventCancelledDomainEvent);
+    }
+
+    @Test
+    void pullDomainEvents_clearsEventsAfterPull() {
+        event.cancel();
+        event.pullDomainEvents();
+
+        List<DomainEvent> secondPull = event.pullDomainEvents();
+
+        assertEquals(0, secondPull.size());
+    }
+
+    @Test
+    void updateStatus_statusChanges_addsStatusChangedDomainEvent() {
+        Event pastEvent = new Event(new EventId(1L), new EventName("Oud event"),
+                new EventDate(LocalDate.now().minusDays(1)), "Rotterdam",
+                new EventDescription("Dit event is al voorbij."), EventStatus.PLANNED, 1L);
+
+        pastEvent.updateStatus(LocalDate.now());
+
+        List<DomainEvent> events = pastEvent.pullDomainEvents();
+        assertEquals(1, events.size());
+        assertTrue(events.get(0) instanceof EventStatusChangedDomainEvent);
+        EventStatusChangedDomainEvent changed = (EventStatusChangedDomainEvent) events.get(0);
+        assertEquals("PLANNED", changed.oldStatus());
+        assertEquals("COMPLETED", changed.newStatus());
+    }
+
+    @Test
+    void updateStatus_statusUnchanged_doesNotAddDomainEvent() {
+        event.updateStatus(LocalDate.now());
+
+        List<DomainEvent> events = event.pullDomainEvents();
+
+        assertEquals(0, events.size());
+    }
+
+    // --- hashCode ---
+
+    @Test
+    void hashCode_sameId_equalHashCodes() {
+        Event e1 = new Event(new EventId(1L), new EventName("Event A"),
+                new EventDate(LocalDate.now().plusDays(1)), "Den Haag",
+                new EventDescription("Beschrijving van event A."), EventStatus.PLANNED, 1L);
+        Event e2 = new Event(new EventId(1L), new EventName("Event B"),
+                new EventDate(LocalDate.now().plusDays(2)), "Leiden",
+                new EventDescription("Beschrijving van event B."), EventStatus.CANCELLED, 2L);
+
+        assertEquals(e1.hashCode(), e2.hashCode());
     }
 
     @Test

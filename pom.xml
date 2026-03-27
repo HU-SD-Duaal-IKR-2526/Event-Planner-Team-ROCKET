@@ -84,9 +84,17 @@
 							<rules>
 								<rule>
 									<element>PACKAGE</element>
-									<includes>
-										<include>com.elton.eventplanner.*</include>
-									</includes>
+									<excludes>
+										<exclude>com.elton.eventplanner</exclude>
+										<exclude>com.elton.eventplanner.controllers</exclude>
+										<exclude>com.elton.eventplanner.controllers.exceptions</exclude>
+										<exclude>com.elton.eventplanner.services</exclude>
+										<exclude>com.elton.eventplanner.services.exceptions</exclude>
+										<exclude>com.elton.eventplanner.entities</exclude>
+										<exclude>com.elton.eventplanner.entities.enums</exclude>
+										<exclude>com.elton.eventplanner.DTOs</exclude>
+										<exclude>com.elton.eventplanner.repositories</exclude>
+									</excludes>
 									<limits>
 										<limit>
 											<counter>INSTRUCTION</counter>

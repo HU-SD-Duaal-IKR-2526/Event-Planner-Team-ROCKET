@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.elton.eventplanner.event.domain.exception.EventAlreadyCancelledException;
 import com.elton.eventplanner.event.domain.exception.EventNotFoundException;
 import com.elton.eventplanner.services.exceptions.EntityNotFoundException;
 import com.elton.eventplanner.services.exceptions.InvalidEnumValueException;
@@ -30,6 +31,18 @@ public class GlobalExceptionHandler {
 		err.setMessage(e.getMessage());
 		err.setPath(request.getRequestURI());
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
+	}
+
+	@ExceptionHandler(EventAlreadyCancelledException.class)
+	public ResponseEntity<StandardError> eventAlreadyCancelled(
+			EventAlreadyCancelledException e, HttpServletRequest request) {
+		StandardError err = new StandardError();
+		err.setTimestamp(Instant.now());
+		err.setStatus(HttpStatus.CONFLICT.value());
+		err.setError("Event already cancelled");
+		err.setMessage(e.getMessage());
+		err.setPath(request.getRequestURI());
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(err);
 	}
 
 	@ExceptionHandler(EntityNotFoundException.class)

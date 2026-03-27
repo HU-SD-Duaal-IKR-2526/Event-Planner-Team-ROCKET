@@ -1,6 +1,7 @@
 package com.elton.eventplanner.event.domain.model;
 
 import com.elton.eventplanner.event.domain.events.DomainEvent;
+import com.elton.eventplanner.event.domain.exception.EventAlreadyCancelledException;
 import com.elton.eventplanner.event.domain.events.EventCancelledDomainEvent;
 import com.elton.eventplanner.event.domain.events.EventStatusChangedDomainEvent;
 import com.elton.eventplanner.event.domain.valueobject.EventDate;
@@ -48,7 +49,7 @@ public class Event {
 
     public void cancel() {
         if (this.status == EventStatus.CANCELLED) {
-            throw new IllegalStateException("Event is already cancelled");
+            throw new EventAlreadyCancelledException(id != null ? id.getValue() : null);
         }
         this.status = EventStatus.CANCELLED;
         domainEvents.add(new EventCancelledDomainEvent(id != null ? id.getValue() : null));
