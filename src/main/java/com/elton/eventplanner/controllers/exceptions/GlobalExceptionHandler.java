@@ -32,7 +32,8 @@ public class GlobalExceptionHandler {
 	}
 	
 	@ExceptionHandler(UserAlreadyExistsException.class)
-	public ResponseEntity<StandardError> userAlreadyExists(UserAlreadyExistsException e, HttpServletRequest request) {
+	public ResponseEntity<StandardError> userAlreadyExists(
+			UserAlreadyExistsException e, HttpServletRequest request) {
 		StandardError err = new StandardError();
 		err.setTimestamp(Instant.now());
 		err.setStatus(HttpStatus.CONFLICT.value());
@@ -76,7 +77,8 @@ public class GlobalExceptionHandler {
 	}
 	
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<StandardError> validationHandling(MethodArgumentNotValidException e, HttpServletRequest request) {
+	public ResponseEntity<StandardError> validationHandling(
+			MethodArgumentNotValidException e, HttpServletRequest request) {
 		StandardError err = new StandardError();
 		err.setTimestamp(Instant.now());
 		err.setStatus(HttpStatus.BAD_REQUEST.value());
