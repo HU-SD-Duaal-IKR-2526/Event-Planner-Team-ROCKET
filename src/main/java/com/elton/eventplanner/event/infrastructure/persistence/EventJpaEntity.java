@@ -45,11 +45,31 @@ public class EventJpaEntity {
         this.userId = userId;
     }
 
-    public Long getId() { return id; }
-    public String getName() { return name; }
-    public LocalDate getDate() { return date; }
-    public String getLocation() { return location; }
-    public String getDescription() { return description; }
-    public EventStatus getStatus() { return status; }
-    public Long getUserId() { return userId; }
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public EventStatus getStatus() {
+        return status;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
 }

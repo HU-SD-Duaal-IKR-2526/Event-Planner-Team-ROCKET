@@ -55,7 +55,9 @@ public class Event {
     }
 
     public void updateStatus(LocalDate today) {
-        if (this.status == EventStatus.CANCELLED) return;
+        if (this.status == EventStatus.CANCELLED) {
+            return;
+        }
         EventStatus previousStatus = this.status;
         if (this.date.isBefore(today)) {
             this.status = EventStatus.COMPLETED;
@@ -91,18 +93,42 @@ public class Event {
 
     // --- Getters ---
 
-    public EventId getId() { return id; }
-    public EventName getName() { return name; }
-    public EventDate getDate() { return date; }
-    public String getLocation() { return location; }
-    public EventDescription getDescription() { return description; }
-    public EventStatus getStatus() { return status; }
-    public Long getUserId() { return userId; }
+    public EventId getId() {
+        return id;
+    }
+
+    public EventName getName() {
+        return name;
+    }
+
+    public EventDate getDate() {
+        return date;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public EventDescription getDescription() {
+        return description;
+    }
+
+    public EventStatus getStatus() {
+        return status;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Event other)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Event other)) {
+            return false;
+        }
         return Objects.equals(id, other.id);
     }
 

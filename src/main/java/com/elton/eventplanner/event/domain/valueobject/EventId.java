@@ -17,8 +17,12 @@ public final class EventId {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof EventId other)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof EventId other)) {
+            return false;
+        }
         return Objects.equals(value, other.value);
     }
 

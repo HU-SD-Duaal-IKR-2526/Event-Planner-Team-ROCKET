@@ -12,20 +12,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class EventDomainEventHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(EventDomainEventHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EventDomainEventHandler.class);
 
     @EventListener
     public void on(EventCreatedDomainEvent event) {
-        log.info("Event created: id={}, name={}", event.eventId(), event.eventName());
+        LOG.info("Event created: id={}, name={}", event.eventId(), event.eventName());
     }
 
     @EventListener
     public void on(EventCancelledDomainEvent event) {
-        log.info("Event cancelled: id={}", event.eventId());
+        LOG.info("Event cancelled: id={}", event.eventId());
     }
 
     @EventListener
     public void on(EventStatusChangedDomainEvent event) {
-        log.info("Event status changed: id={}, {} -> {}", event.eventId(), event.oldStatus(), event.newStatus());
+        LOG.info("Event status changed: id={}, {} -> {}", event.eventId(), event.oldStatus(), event.newStatus());
     }
 }

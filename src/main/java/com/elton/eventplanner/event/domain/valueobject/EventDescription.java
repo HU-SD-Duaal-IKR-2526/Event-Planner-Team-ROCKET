@@ -8,8 +8,9 @@ public final class EventDescription {
 
     public EventDescription(String value) {
         Objects.requireNonNull(value, "Event description cannot be null");
-        if (value.length() < 10 || value.length() > 500)
+        if (value.length() < 10 || value.length() > 500) {
             throw new IllegalArgumentException("Event description must be between 10 and 500 characters");
+        }
         this.value = value;
     }
 
@@ -19,8 +20,12 @@ public final class EventDescription {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof EventDescription other)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof EventDescription other)) {
+            return false;
+        }
         return Objects.equals(value, other.value);
     }
 
