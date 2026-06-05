@@ -1,0 +1,15 @@
+target/
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+.classpath
+.project
+.settings/
+.factorypath
+.flattened-pom.xml
+HELP.md
+*.log
+.mvn/wrapper/maven-wrapper.jar

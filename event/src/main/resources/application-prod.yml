@@ -1,0 +1,12 @@
+# Prod profile: PostgreSQL. Architectuurdoc §3.4 / Data-distributiedoc §2.3.1.
+spring:
+  datasource:
+    url: jdbc:postgresql://${PG_HOST:localhost}:${PG_PORT:5432}/${PG_DB:event}
+    username: ${PG_USER:event}
+    password: ${PG_PASSWORD:event}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
