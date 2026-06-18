@@ -1,0 +1,208 @@
+### =====================================================================
+### User/Profile API — core-monolith
+### Team Rocket — Joshua Larez
+### Base: http://localhost:8080
+### Security: disabled in dev mode (no JWT required for now)
+### =====================================================================
+
+@baseUrl = http://localhost:8080
+@userId = 00000000-0000-0000-0000-000000000001
+
+### ─────────────────────────────────────────────────────────────────────
+### ACTUATOR — sanity check
+### ─────────────────────────────────────────────────────────────────────
+
+### 1. Health check
+GET {{baseUrl}}/actuator/health
+Accept: application/json
+
+###
+
+### ─────────────────────────────────────────────────────────────────────
+### USER PROFILE — GET
+### ─────────────────────────────────────────────────────────────────────
+
+### 2. Get profile by userId (profile must exist first — create via RabbitMQ event or POST below)
+GET {{baseUrl}}/users/{{userId}}/profile
+Accept: application/json
+X-Correlation-Id: test-get-profile-001
+
+###
+
+### 3. Get notification preferences for a user
+GET {{baseUrl}}/users/{{userId}}/notification-prefs
+Accept: application/json
+X-Correlation-Id: test-get-prefs-001
+
+###
+
+### ─────────────────────────────────────────────────────────────────────
+### USER PROFILE — UPDATE
+### ─────────────────────────────────────────────────────────────────────
+
+### 4. Update profile — display name and bio
+PUT {{baseUrl}}/users/{{userId}}/profile
+Content-Type: application/json
+X-Correlation-Id: test-update-profile-001
+
+{
+  "displayName": "Joshua Larez",
+  "bio": "Software engineer at Team Rocket. Working on Event Planner."
+}
+
+###
+
+### 5. Update profile — with preferences (language, timezone, notification channel)
+PUT {{baseUrl}}/users/{{userId}}/profile
+Content-Type: application/json
+X-Correlation-Id: test-update-profile-002
+
+{
+  "displayName": "Joshua Larez",
+  "bio": "Updated bio with preferences.",
+  "preferences": {
+    "language": "nl",
+    "timezone": "Europe/Amsterdam",
+    "notificationChannel": "EMAIL"
+  }
+}
+
+###
+
+### 6. Update profile — push notifications, English
+PUT {{baseUrl}}/users/{{userId}}/profile
+Content-Type: application/json
+X-Correlation-Id: test-update-profile-003
+
+{
+  "displayName": "Joshua L.",
+  "bio": "Short bio.",
+  "preferences": {
+    "language": "en",
+    "timezone": "UTC",
+    "notificationChannel": "PUSH"
+  }
+}
+
+###
+
+### 7. Update profile — IN_APP channel
+PUT {{baseUrl}}/users/{{userId}}/profile
+Content-Type: application/json
+X-Correlation-Id: test-update-profile-004
+
+{
+  "displayName": "Joshua Larez",
+  "bio": "In-app notifications preferred.",
+  "preferences": {
+    "language": "nl",
+    "timezone": "Europe/Amsterdam",
+    "notificationChannel": "IN_APP"
+  }
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────────────
+### AVATAR — upload / remove
+### ─────────────────────────────────────────────────────────────────────
+
+### 8. Upload avatar (multipart — pick a small jpg/png file on your machine)
+# Change the file path to a real image on your system
+POST {{baseUrl}}/users/{{userId}}/avatar
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="avatar.jpg"
+Content-Type: image/jpeg
+
+< C:/Users/ydcla/Pictures/avatar.jpg
+--boundary--
+
+###
+
+### 9. Remove avatar
+DELETE {{baseUrl}}/users/{{userId}}/avatar
+X-Correlation-Id: test-remove-avatar-001
+
+###
+
+### ─────────────────────────────────────────────────────────────────────
+### VALIDATION — expected errors (4xx responses)
+### ─────────────────────────────────────────────────────────────────────
+
+### 10. Update profile — displayName too short (< 2 chars) → expect 400
+PUT {{baseUrl}}/users/{{userId}}/profile
+Content-Type: application/json
+X-Correlation-Id: test-validation-001
+
+{
+  "displayName": "J",
+  "bio": "Valid bio"
+}
+
+###
+
+### 11. Update profile — displayName too long (> 64 chars) → expect 400
+PUT {{baseUrl}}/users/{{userId}}/profile
+Content-Type: application/json
+X-Correlation-Id: test-validation-002
+
+{
+  "displayName": "ThisNameIsWayTooLongAndShouldFailValidationBecauseItExceedsSixtyFourCharacters",
+  "bio": "Valid bio"
+}
+
+###
+
+### 12. Update profile — bio too long (> 500 chars) → expect 400
+PUT {{baseUrl}}/users/{{userId}}/profile
+Content-Type: application/json
+X-Correlation-Id: test-validation-003
+
+{
+  "displayName": "Joshua Larez",
+  "bio": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+}
+
+###
+
+### 13. Update profile — invalid notification channel → expect 400
+PUT {{baseUrl}}/users/{{userId}}/profile
+Content-Type: application/json
+X-Correlation-Id: test-validation-004
+
+{
+  "displayName": "Joshua Larez",
+  "bio": "Valid bio",
+  "preferences": {
+    "language": "nl",
+    "timezone": "Europe/Amsterdam",
+    "notificationChannel": "TELEGRAM"
+  }
+}
+
+###
+
+### 14. Get profile — non-existent userId → expect 404
+GET {{baseUrl}}/users/99999999-9999-9999-9999-999999999999/profile
+Accept: application/json
+X-Correlation-Id: test-not-found-001
+
+###
+
+### ─────────────────────────────────────────────────────────────────────
+### SIMULATE AccountRegistered event (trigger profile auto-creation)
+### In production this comes from Identity via RabbitMQ.
+### For manual testing you can POST directly if a test endpoint exists,
+### or publish the event via RabbitMQ management UI at:
+###   http://localhost:15672  (login: ep / ep)
+###   Exchange: ep.events
+###   Routing key: identity.account.registered.v1
+###   Body (JSON):
+###   {
+###     "accountId": "00000000-0000-0000-0000-000000000001",
+###     "email": "joshua@teamrocket.nl",
+###     "occurredAt": "2026-06-03T09:00:00Z"
+###   }
+### ─────────────────────────────────────────────────────────────────────

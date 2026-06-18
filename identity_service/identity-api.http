@@ -1,0 +1,169 @@
+### =====================================================================
+### Identity Service API — identity-service
+### Team Rocket — Joshua Larez
+### Base: http://localhost:8081
+### Run these IN ORDER: register → login → use JWT in core-monolith
+### =====================================================================
+
+@identityUrl = http://localhost:8081
+@coreUrl = http://localhost:8080
+
+### ─────────────────────────────────────────────────────────────────────
+### STEP 1 — Health checks (both services)
+### ─────────────────────────────────────────────────────────────────────
+
+### 1a. Identity health
+GET {{identityUrl}}/actuator/health
+
+###
+
+### 1b. Core-monolith health
+GET {{coreUrl}}/actuator/health
+
+###
+
+### 1c. JWKS endpoint — should return RSA public key
+GET {{identityUrl}}/.well-known/jwks.json
+
+###
+
+### ─────────────────────────────────────────────────────────────────────
+### STEP 2 — Register a new account
+### ─────────────────────────────────────────────────────────────────────
+
+### 2. Register — copy the returned accountId for later
+POST {{identityUrl}}/auth/register
+Content-Type: application/json
+X-Correlation-Id: test-register-001
+
+{
+  "email": "joshua@teamrocket.nl",
+  "password": "Welkom123!",
+  "displayName": "Joshua Larez"
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────────────
+### STEP 3 — Login and get JWT
+### ─────────────────────────────────────────────────────────────────────
+
+### 3. Login — copy the accessToken from the response, paste it below as @token
+POST {{identityUrl}}/auth/login
+Content-Type: application/json
+X-Correlation-Id: test-login-001
+
+{
+  "email": "joshua@teamrocket.nl",
+  "password": "Welkom123!"
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────────────
+### STEP 4 — Use JWT to call core-monolith
+### Paste the accessToken from the login response below
+### ─────────────────────────────────────────────────────────────────────
+
+@token = PASTE_ACCESS_TOKEN_HERE
+@userId = PASTE_ACCOUNT_ID_HERE
+
+### 4a. Get profile (auto-created when account registered via RabbitMQ event)
+GET {{coreUrl}}/users/{{userId}}/profile
+Authorization: Bearer {{token}}
+X-Correlation-Id: test-jwt-profile-001
+
+###
+
+### 4b. Get notification prefs with JWT
+GET {{coreUrl}}/users/{{userId}}/notification-prefs
+Authorization: Bearer {{token}}
+X-Correlation-Id: test-jwt-prefs-001
+
+###
+
+### 4c. Update profile with JWT
+PUT {{coreUrl}}/users/{{userId}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+X-Correlation-Id: test-jwt-update-001
+
+{
+  "displayName": "Joshua Larez",
+  "bio": "Software engineer. Team Rocket. Event Planner project.",
+  "preferences": {
+    "language": "nl",
+    "timezone": "Europe/Amsterdam",
+    "notificationChannel": "EMAIL"
+  }
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────────────
+### STEP 5 — Other Identity endpoints
+### ─────────────────────────────────────────────────────────────────────
+
+### 5. Request password reset
+POST {{identityUrl}}/auth/password-reset/request
+Content-Type: application/json
+X-Correlation-Id: test-reset-001
+
+{
+  "email": "joshua@teamrocket.nl"
+}
+
+###
+
+### 6. Resend verification email
+POST {{identityUrl}}/auth/resend-verification
+Content-Type: application/json
+X-Correlation-Id: test-resend-001
+
+{
+  "email": "joshua@teamrocket.nl"
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────────────
+### STEP 6 — Validation errors (expected 4xx)
+### ─────────────────────────────────────────────────────────────────────
+
+### 7. Register duplicate email → expect 409
+POST {{identityUrl}}/auth/register
+Content-Type: application/json
+X-Correlation-Id: test-duplicate-001
+
+{
+  "email": "joshua@teamrocket.nl",
+  "password": "Welkom123!",
+  "displayName": "Joshua Larez"
+}
+
+###
+
+### 8. Login wrong password → expect 401
+POST {{identityUrl}}/auth/login
+Content-Type: application/json
+X-Correlation-Id: test-wrong-pass-001
+
+{
+  "email": "joshua@teamrocket.nl",
+  "password": "WrongPassword!"
+}
+
+###
+
+### 9. Call core-monolith without JWT → expect 401
+GET {{coreUrl}}/users/{{userId}}/profile
+X-Correlation-Id: test-no-jwt-001
+
+###
+
+### 10. Call core-monolith with fake JWT → expect 401
+GET {{coreUrl}}/users/{{userId}}/profile
+Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.fake.signature
+X-Correlation-Id: test-fake-jwt-001
+
+###
