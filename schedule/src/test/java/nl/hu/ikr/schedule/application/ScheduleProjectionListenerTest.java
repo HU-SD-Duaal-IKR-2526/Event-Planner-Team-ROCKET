@@ -72,7 +72,7 @@ class ScheduleProjectionListenerTest {
     void confirmed_verhoogtHeadcountNIET() throws Exception {
         schedule.applyHeadcountDelta(2); // al geteld bij RESERVED
         when(processedRepo.existsByMessageId(any())).thenReturn(false);
-        when(scheduleRepo.findByEventId(eventId)).thenReturn(Optional.of(schedule));
+        // geen findByEventId-stub: bij CONFIRMED is delta 0 en wordt de schedule niet opgezocht
 
         String msg = objectMapper.writeValueAsString(buildRegistrationMsg("CONFIRMED", 2));
         listener.onRegistrationEvent(msg, "registration.confirmed.v1");
