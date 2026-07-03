@@ -1,0 +1,28 @@
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: test-userprofile
+  rabbitmq:
+    host: localhost
+    port: 5672
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+app:
+  identity:
+    jwks-uri: http://localhost:8081/.well-known/jwks.json
+  storage:
+    endpoint: http://localhost:9000
+    access-key: minioadmin
+    secret-key: minioadmin
+    bucket: test-bucket
+    base-url: http://localhost:9000/test-bucket

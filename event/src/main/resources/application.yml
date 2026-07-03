@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: core-monolith-event
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+server:
+  port: ${SERVER_PORT:8081}
+
+logging:
+  level:
+    nl.teamrocket.core.event: INFO
+    org.hibernate.SQL: WARN
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

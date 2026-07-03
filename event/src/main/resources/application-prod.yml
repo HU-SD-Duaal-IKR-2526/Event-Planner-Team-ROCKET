@@ -1,0 +1,19 @@
+# Prod profile: PostgreSQL. Architectuurdoc §3.4 / Data-distributiedoc §2.3.1.
+spring:
+  datasource:
+    url: jdbc:postgresql://${PG_HOST:localhost}:${PG_PORT:5432}/${PG_DB:event}
+    username: ${PG_USER:event}
+    password: ${PG_PASSWORD:event}
+  jpa:
+    hibernate:
+      # Geen Flyway-migraties in deze module; het schema wordt door Hibernate
+      # beheerd (overschrijfbaar via SPRING_JPA_HIBERNATE_DDL_AUTO).
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
