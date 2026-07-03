@@ -1,12 +1,33 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# Event Planner — Team ROCKET
+# Start alle services + infrastructuur:  docker compose up --build
+#
+# Services (host-poort → container):
+#   userprofile   http://localhost:8080   (core-monolith, userprofile module)
+#   identity      http://localhost:8081   (JWT/JWKS: /.well-known/jwks.json)
+#   event         http://localhost:8082
+#   venue         http://localhost:8083
+#   registration  http://localhost:8084
+#   schedule      http://localhost:8085
+#   notification  http://localhost:8086
+#
+# Infra:
+#   RabbitMQ management  http://localhost:15672  (guest/guest)
+#   MinIO console        http://localhost:9001   (minioadmin/minioadmin)
+#   Postgres: 5433 identity / 5434 core / 5435 event / 5436 venue
+#             5437 registration / 5438 schedule
+#   MongoDB:  27017 userprofile / 27018 notification — Redis: 6379
+# ══════════════════════════════════════════════════════════════════════════════
+
 services:
 
-  # ── RabbitMQ ────────────────────────────────────────────────────────────────
+  # ── RabbitMQ (gedeelde event bus) ───────────────────────────────────────────
   rabbitmq:
-    image: rabbitmq:3.13-management
-    container_name: ikr-rabbitmq
+    image: rabbitmq:3.13-management-alpine
+    container_name: ep-rabbitmq
     ports:
-      - "5672:5672"       # AMQP
-      - "15672:15672"     # Management UI → http://localhost:15672 (guest/guest)
+      - "5672:5672"
+      - "15672:15672"     # Management UI (guest/guest)
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -16,50 +37,317 @@ services:
       timeout: 5s
       retries: 10
 
-  # ── PostgreSQL: registration ────────────────────────────────────────────────
+  # ── Databases (eigen database per service) ──────────────────────────────────
+  postgres-identity:
+    image: postgres:16-alpine
+    container_name: ep-postgres-identity
+    environment:
+      POSTGRES_DB: identity
+      POSTGRES_USER: identity
+      POSTGRES_PASSWORD: identity
+    ports:
+      - "5433:5432"
+    volumes:
+      - identity-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U identity -d identity"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  postgres-core:
+    image: postgres:16-alpine
+    container_name: ep-postgres-core
+    environment:
+      POSTGRES_DB: eventplanner
+      POSTGRES_USER: core
+      POSTGRES_PASSWORD: core
+    ports:
+      - "5434:5432"
+    volumes:
+      - core-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U core -d eventplanner"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  postgres-event:
+    image: postgres:16-alpine
+    container_name: ep-postgres-event
+    environment:
+      POSTGRES_DB: event
+      POSTGRES_USER: event
+      POSTGRES_PASSWORD: event
+    ports:
+      - "5435:5432"
+    volumes:
+      - event-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U event -d event"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  postgres-venue:
+    image: postgres:16-alpine
+    container_name: ep-postgres-venue
+    environment:
+      POSTGRES_DB: venue
+      POSTGRES_USER: venue
+      POSTGRES_PASSWORD: venue
+    ports:
+      - "5436:5432"
+    volumes:
+      - venue-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U venue -d venue"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   postgres-registration:
     image: postgres:16-alpine
-    container_name: ikr-postgres-registration
+    container_name: ep-postgres-registration
     environment:
       POSTGRES_DB: registration_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5433:5432"       # lokaal poort 5433 om conflict te vermijden
+      - "5437:5432"
     volumes:
-      - postgres_registration_data:/var/lib/postgresql/data
+      - registration-pg-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d registration_db"]
       interval: 10s
       timeout: 5s
       retries: 10
 
-  # ── PostgreSQL: schedule ─────────────────────────────────────────────────────
   postgres-schedule:
     image: postgres:16-alpine
-    container_name: ikr-postgres-schedule
+    container_name: ep-postgres-schedule
     environment:
       POSTGRES_DB: schedule_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5434:5432"       # lokaal poort 5434
+      - "5438:5432"
     volumes:
-      - postgres_schedule_data:/var/lib/postgresql/data
+      - schedule-pg-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d schedule_db"]
       interval: 10s
       timeout: 5s
       retries: 10
 
-  # ── Registration Service ─────────────────────────────────────────────────────
-  registration:
-    build:
-      context: ./registration-service
-      dockerfile: Dockerfile
-    container_name: ikr-registration
+  mongo-userprofile:
+    image: mongo:7.0
+    container_name: ep-mongo-userprofile
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+      - "27017:27017"
+    volumes:
+      - userprofile-mongo-data:/data/db
+      - ./userprofile/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mongo-notification:
+    image: mongo:7.0
+    container_name: ep-mongo-notification
+    ports:
+      - "27018:27017"
+    volumes:
+      - notification-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: ep-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ── MinIO (S3-compatible object storage, avatars userprofile) ───────────────
+  minio:
+    image: minio/minio:RELEASE.2024-07-13T01-46-15Z
+    container_name: ep-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Maakt eenmalig de avatars-bucket aan
+  minio-init:
+    image: minio/mc:RELEASE.2024-07-11T18-01-28Z
+    container_name: ep-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 minioadmin minioadmin &&
+      mc mb --ignore-existing local/eventplanner-avatars &&
+      mc anonymous set download local/eventplanner-avatars
+      "
+
+  # ── Identity Service (poort 8081) ───────────────────────────────────────────
+  identity:
+    build: ./identity_service
+    container_name: ep-identity
     ports:
       - "8081:8081"
+    environment:
+      PG_HOST: postgres-identity
+      PG_PORT: 5432
+      PG_DB: identity
+      PG_USER: identity
+      PG_PASS: identity
+      RABBIT_HOST: rabbitmq
+      RABBIT_PORT: 5672
+      RABBIT_USER: guest
+      RABBIT_PASS: guest
+    depends_on:
+      postgres-identity:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8081/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+      retries: 5
+    restart: on-failure
+
+  # ── User Profile (core-monolith, poort 8080) ────────────────────────────────
+  userprofile:
+    build: ./userprofile
+    container_name: ep-userprofile
+    ports:
+      - "8080:8080"
+    environment:
+      PG_HOST: postgres-core
+      PG_PORT: 5432
+      PG_DB: eventplanner
+      PG_USER: core
+      PG_PASS: core
+      MONGO_HOST: mongo-userprofile
+      MONGO_PORT: 27017
+      MONGO_DB: userprofile
+      RABBIT_HOST: rabbitmq
+      RABBIT_PORT: 5672
+      RABBIT_USER: guest
+      RABBIT_PASS: guest
+      # RSA public key wordt bij het opstarten opgehaald bij Identity
+      JWKS_URI: http://identity:8081/.well-known/jwks.json
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      S3_BUCKET: eventplanner-avatars
+      S3_BASE_URL: http://localhost:9000/eventplanner-avatars
+    depends_on:
+      postgres-core:
+        condition: service_healthy
+      mongo-userprofile:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+      retries: 5
+    restart: on-failure
+
+  # ── Event Service (intern 8081 → host 8082) ─────────────────────────────────
+  event:
+    build: ./event
+    container_name: ep-event
+    ports:
+      - "8082:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PG_HOST: postgres-event
+      PG_PORT: 5432
+      PG_DB: event
+      PG_USER: event
+      PG_PASSWORD: event
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+    depends_on:
+      postgres-event:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8081/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+      retries: 5
+    restart: on-failure
+
+  # ── Venue Service (intern 8082 → host 8083) ─────────────────────────────────
+  venue:
+    build: ./venue
+    container_name: ep-venue
+    ports:
+      - "8083:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PG_HOST: postgres-venue
+      PG_PORT: 5432
+      PG_DB: venue
+      PG_USER: venue
+      PG_PASSWORD: venue
+    depends_on:
+      postgres-venue:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8082/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+      retries: 5
+    restart: on-failure
+
+  # ── Registration Service (intern 8081 → host 8084) ──────────────────────────
+  registration:
+    build: ./registration
+    container_name: ep-registration
+    ports:
+      - "8084:8081"
     environment:
       DB_HOST: postgres-registration
       DB_PORT: 5432
@@ -75,22 +363,14 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      start_period: 60s
-      retries: 5
     restart: on-failure
 
-  # ── Schedule Service ─────────────────────────────────────────────────────────
+  # ── Schedule Service (intern 8082 → host 8085) ──────────────────────────────
   schedule:
-    build:
-      context: ./schedule-service
-      dockerfile: Dockerfile
-    container_name: ikr-schedule
+    build: ./schedule
+    container_name: ep-schedule
     ports:
-      - "8082:8082"
+      - "8085:8082"
     environment:
       DB_HOST: postgres-schedule
       DB_PORT: 5432
@@ -106,8 +386,31 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    restart: on-failure
+
+  # ── Notification Service (intern 8080 → host 8086) ──────────────────────────
+  notification:
+    build: ./notification
+    container_name: ep-notification
+    ports:
+      - "8086:8080"
+    environment:
+      MONGO_URI: mongodb://mongo-notification:27017/notification
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+    depends_on:
+      mongo-notification:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       start_period: 60s
@@ -115,5 +418,12 @@ services:
     restart: on-failure
 
 volumes:
-  postgres_registration_data:
-  postgres_schedule_data:
+  identity-pg-data:
+  core-pg-data:
+  event-pg-data:
+  venue-pg-data:
+  registration-pg-data:
+  schedule-pg-data:
+  userprofile-mongo-data:
+  notification-mongo-data:
+  minio-data:

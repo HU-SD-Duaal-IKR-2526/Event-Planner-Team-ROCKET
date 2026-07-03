@@ -1,7 +1,16 @@
-FROM eclipse-temurin:21-jre-alpine AS runtime
+# ── Build stage ───────────────────────────────────────────────────────────────
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
+COPY pom.xml .
+RUN mvn dependency:go-offline -q --no-transfer-progress
+COPY src ./src
+RUN mvn package -DskipTests -q --no-transfer-progress
+
+# ── Runtime stage ─────────────────────────────────────────────────────────────
+FROM eclipse-temurin:21-jre-alpine
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-COPY target/core-monolith-*.jar app.jar
+WORKDIR /app
+COPY --from=build /app/target/core-monolith-*.jar app.jar
 USER appuser
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]

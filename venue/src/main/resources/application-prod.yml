@@ -9,7 +9,9 @@ spring:
     password: ${PG_PASSWORD:venue}
   jpa:
     hibernate:
-      ddl-auto: validate
+      # Geen Flyway-migraties in deze module; het schema wordt door Hibernate
+      # beheerd (overschrijfbaar via SPRING_JPA_HIBERNATE_DDL_AUTO).
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect

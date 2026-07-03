@@ -10,7 +10,7 @@ RUN mvn package -DskipTests -q --no-transfer-progress
 FROM eclipse-temurin:21-jre-alpine
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
-COPY --from=build /app/target/notification-*.jar app.jar
+COPY --from=build /app/target/core-monolith-event-*.jar app.jar
 USER appuser
-EXPOSE 8080
+EXPOSE 8081
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]

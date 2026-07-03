@@ -4,11 +4,11 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 /**
  * Architecture guard tests — enforces that module boundaries inside the Core Monolith
@@ -59,19 +59,18 @@ class ModuleBoundaryTest {
     }
 
     @Test
+    @Disabled("De oorspronkelijke regel gebruikte niet-bestaande ArchUnit-syntax "
+            + "(ClassesShould#not) en compileerde niet. De bedoelde invariant — "
+            + "adapters mogen domain.model alleen voor mapping gebruiken en moeten "
+            + "commands/queries via de application layer routeren — is conditioneel "
+            + "en niet uit te drukken met een simpele package-regel. Herformuleren "
+            + "met een custom ArchCondition, of laten vervallen.")
     @DisplayName("adapters must not bypass application layer to access domain directly")
     void adapters_must_use_application_layer() {
-        ArchRule rule = noClasses()
-                .that().resideInAPackage("nl.teamrocket.core..adapter..")
-                .should().dependOnClassesThat()
-                .resideInAPackage("nl.teamrocket.core..domain.model..")
-                .andShould().not().dependOnClassesThat()
-                .resideInAPackage("nl.teamrocket.core..application..");
         // Note: adapters ARE allowed to use domain model classes for mapping,
         // but must route commands/queries through the application layer.
         // This rule is intentionally lenient on read-only domain model access.
         // The key invariant: no adapter should call domain.model methods directly.
-        rule.check(classes);
     }
 
     @Test

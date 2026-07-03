@@ -17,3 +17,10 @@ spring:
     console:
       enabled: true
       path: /h2
+
+# AMQP staat op het classpath maar in dev draait geen broker;
+# houd de health-endpoint groen zonder RabbitMQ.
+management:
+  health:
+    rabbit:
+      enabled: false

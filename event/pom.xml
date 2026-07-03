@@ -55,6 +55,12 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- RabbitMQ (domain events naar de andere BC's, alleen actief in prod-profiel) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
         <!-- Health endpoints -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

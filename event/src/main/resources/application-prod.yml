@@ -6,7 +6,14 @@ spring:
     password: ${PG_PASSWORD:event}
   jpa:
     hibernate:
-      ddl-auto: validate
+      # Geen Flyway-migraties in deze module; het schema wordt door Hibernate
+      # beheerd (overschrijfbaar via SPRING_JPA_HIBERNATE_DDL_AUTO).
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
