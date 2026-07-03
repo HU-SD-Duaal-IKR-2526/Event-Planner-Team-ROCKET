@@ -1,0 +1,22 @@
+services:
+
+  # ── PostgreSQL (Identity only) ─────────────────────────────────
+  postgres-identity:
+    image: postgres:16-alpine
+    container_name: postgres-identity
+    environment:
+      POSTGRES_DB: identity
+      POSTGRES_USER: identity
+      POSTGRES_PASSWORD: identity
+    ports:
+      - "5434:5432"
+    volumes:
+      - identity-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U identity -d identity"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  identity-pg-data:

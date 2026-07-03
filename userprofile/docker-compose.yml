@@ -1,0 +1,74 @@
+version: '3.9'
+
+services:
+
+  # ── PostgreSQL ─────────────────────────────────────────────────
+  postgres-core:
+    image: postgres:16-alpine
+    container_name: postgres-core
+    environment:
+      POSTGRES_DB: eventplanner
+      POSTGRES_USER: core
+      POSTGRES_PASSWORD: core
+    ports:
+      - "5433:5432"
+    volumes:
+      - core-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U core -d eventplanner"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── MongoDB ────────────────────────────────────────────────────
+  mongodb-core:
+    image: mongo:7.0
+    container_name: mongodb-core
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+      - "27017:27017"
+    volumes:
+      - core-mongo-data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── RabbitMQ ───────────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ep
+      RABBITMQ_DEFAULT_PASS: ep
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── MinIO (S3-compatible Object Storage) ──────────────────────
+  minio:
+    image: minio/minio:RELEASE.2024-07-13T01-46-15Z
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+
+volumes:
+  core-pg-data:
+  core-mongo-data:
+  minio-data:

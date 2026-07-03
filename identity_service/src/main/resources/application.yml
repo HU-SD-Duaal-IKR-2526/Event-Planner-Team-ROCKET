@@ -1,0 +1,81 @@
+server:
+  port: 8081
+  error:
+    include-message: always
+    include-binding-errors: always
+
+spring:
+  application:
+    name: identity-service
+
+  # ── PostgreSQL ─────────────────────────────────────────────────
+  datasource:
+    url: jdbc:postgresql://${PG_HOST:localhost}:${PG_PORT:5434}/${PG_DB:identity}
+    username: ${PG_USER:identity}
+    password: ${PG_PASS:identity}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: identity
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    schemas: identity
+    locations: classpath:db/migration
+
+  # ── RabbitMQ ───────────────────────────────────────────────────
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USER:ep}
+    password: ${RABBIT_PASS:ep}
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+    listener:
+      simple:
+        acknowledge-mode: manual
+        prefetch: 10
+
+# ── App-specific ──────────────────────────────────────────────────
+app:
+  jwt:
+    # RSA key pair is generated at startup — no secret to configure.
+    # Private key stays in memory; public key is exposed via /.well-known/jwks.json
+    expiration-seconds: ${JWT_EXPIRY_SECONDS:900}       # access token: 15 min
+    issuer: event-planner-identity
+    key-id: ${JWT_KEY_ID:event-planner-key-1}
+  email:
+    # Used for building verification/reset URLs in event payloads
+    base-url: ${APP_BASE_URL:http://localhost:3000}
+
+# ── Actuator ──────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  tracing:
+    sampling:
+      probability: 1.0
+
+# ── Logging ───────────────────────────────────────────────────────
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{correlationId}] %-5level %logger{36} - %msg%n"
+  level:
+    nl.teamrocket: DEBUG
+    org.springframework.security: INFO
+    org.springframework.amqp: INFO
