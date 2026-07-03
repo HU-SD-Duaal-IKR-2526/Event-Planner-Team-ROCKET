@@ -1,0 +1,17 @@
+# Prod profile: PostgreSQL met PostGIS-extensie (data-distributiedoc §2.3.2).
+# Voor geospatiale queries (ST_DWithin) is de PostGIS-extensie vereist;
+# zonder PostGIS valt het systeem terug op de Haversine-implementatie in
+# DistanceCalculator (zie README §"Afwijkingen van het ontwerp").
+spring:
+  datasource:
+    url: jdbc:postgresql://${PG_HOST:localhost}:${PG_PORT:5432}/${PG_DB:venue}
+    username: ${PG_USER:venue}
+    password: ${PG_PASSWORD:venue}
+  jpa:
+    hibernate:
+      # Geen Flyway-migraties in deze module; het schema wordt door Hibernate
+      # beheerd (overschrijfbaar via SPRING_JPA_HIBERNATE_DDL_AUTO).
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect

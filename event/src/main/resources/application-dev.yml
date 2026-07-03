@@ -1,0 +1,26 @@
+# Dev profile: H2 in-memory, no external infra required.
+# Use 'prod' profile when running against PostgreSQL.
+spring:
+  datasource:
+    url: jdbc:h2:mem:event;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+  h2:
+    console:
+      enabled: true
+      path: /h2
+
+# AMQP staat op het classpath maar in dev draait geen broker;
+# houd de health-endpoint groen zonder RabbitMQ.
+management:
+  health:
+    rabbit:
+      enabled: false
